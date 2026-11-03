@@ -5,6 +5,7 @@ import {GuestLayout,AuthLayout} from './pages/Layout'
 import HomePage from './pages/HomePage'
 import BuilderPage from './pages/BuilderPage'
 import PreviewPage from './pages/PreviewPage'
+import { Navigate } from 'react-router-dom'
 
 const App = () => {
   return (
@@ -21,6 +22,8 @@ const App = () => {
         <Route path = '/preview/:id' element = {<PreviewPage/>}/>
        
       </Route>
+      {/*catch-all*/}
+      <Route path = '*' element = {<Navigate to="/" replace/>}/>
     </Routes>
   )
 }
