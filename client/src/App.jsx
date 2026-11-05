@@ -7,6 +7,7 @@ import BuilderPage from './pages/BuilderPage'
 import PreviewPage from './pages/PreviewPage'
 import { Navigate } from 'react-router-dom'
 import { Toaster } from 'react-hot-toast'
+import PublishPage from './pages/PublishPage'
 
 const App = () => {
   return (
@@ -25,6 +26,8 @@ const App = () => {
         <Route path = '/preview/:id' element = {<PreviewPage/>}/>
        
       </Route>
+
+      <Route path ='/publish/:id' element={<PublishPage/>}/>
       {/*catch-all*/}
       <Route path = '*' element = {<Navigate to="/" replace/>}/>
     </Routes>

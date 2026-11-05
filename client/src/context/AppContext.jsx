@@ -3,6 +3,8 @@ import { useContext } from 'react'
 import api from '../api/api'
 import {toast} from 'react-hot-toast'
 import { useNavigate } from 'react-router-dom'
+import debounce from 'lodash.debounce'
+import React from 'react'
 
 
 
@@ -23,7 +25,7 @@ const AppContext = createContext(undefined)
     const checkSession = async()=>{
         try{
             const {data} = await api.get("/api/auth/me");
-            setUser(data.user);
+           setUser(data.user);
         }catch(error){
             setUser(null)
         }
@@ -33,7 +35,7 @@ const AppContext = createContext(undefined)
     }
        useEffect(()=>{
         checkSession();
-       },[checkSession])
+       },[])
          const login = async (email,password) =>{
             try{
                 const{data}= await api.post("/api/auth/login",{email,password})
@@ -97,7 +99,7 @@ const AppContext = createContext(undefined)
             if(!user)return;
             if(!silent)setloadingActiveProject(true)
                 try{
-                const{data}=await api.get(`/api/projects${id}`)
+                const{data}=await api.get(`/api/projects/${id}`)
                 setActiveProject(data)
                 const files = Object.keys(data.files);
                 if(files.length>0){
@@ -122,7 +124,7 @@ const AppContext = createContext(undefined)
          }
          useEffect(()=>{
             if(!activeproject?._id||!user)return;
-            const isOngoing = authProject.status==="generating"||activeproject.status==="pending"||activeproject.status==="revising"
+            const isOngoing = activeproject.status==="generating"||activeproject.status==="pending"||activeproject.status==="revising"
             if(isOngoing){
                 setChatLoading(true)
                 const interval= setInterval(()=>{
@@ -164,6 +166,52 @@ const AppContext = createContext(undefined)
 
             },[user]
          )
+         const handleChat = useCallback(
+            async(prompt)=>{
+               if(!activeproject||!user)return;
+               setChatLoading(true)
+               try{
+                const{data }= await api.post(`/api/projects/${activeproject._id}/chat`,{prompt})
+                 setActiveProject(dats)
+                if(data.errors&&data.errors.length >0){
+                    toast.error(`${data.errors.length} revision patch(es) failed`)
+                }else{
+                    toast.success(`updated to version${data.version}`)
+                }
+            
+            }catch(error){
+               console.error ("revision request faileed",error);
+               toast.error(error?.response?.data?.error||"revision request failed")
+                
+               }finally{
+                setChatLoading(false)
+               }
+            },[activeproject,user]
+         )
+         const debouncedSave = React.useMemo(
+            ()=>debounce(async(files,id)=>{
+                try{
+                    await api.put(`/api/projects/${id}/files`,{files})
+
+                }catch(error){
+                    console.error("failed to auto-save files",error)
+                    toast.error("failed to save code modifications")
+
+                }
+            },1000),[],
+         )
+         useEffect(()=>{
+            return()=>{
+                debouncedSave.cancel();
+            }
+         },[debouncedSave])
+         const updateProjectFiles = useCallback(
+            async(params)=>{
+             if (!activeproject||!user)return;
+             debouncedSave(files,activeproject._id)
+
+            },[activeproject,user,debouncedSave]
+        )
     return (
         <AppContext.Provider value = {{
             user,
@@ -183,7 +231,9 @@ const AppContext = createContext(undefined)
             loadProjects,
             loadProject,
             handleGenerate,
-            handleDelete
+            handleDelete,
+            logout,
+            updateProjectFiles
 
 
         }}>
