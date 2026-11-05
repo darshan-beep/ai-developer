@@ -1,7 +1,7 @@
 import React, { useEffect } from 'react'
 import { useState,useRef } from 'react';
 import { CloudUploadIcon } from 'lucide-react';
-import { MicIcon,ArrowRightIcon } from 'lucide-react';
+import { MicIcon,ArrowRightIcon,Loader2Icon } from 'lucide-react';
 
 const Promptinput = ({onSubmit,loading=false,placeholder = 'Describe the website you want to build...',large = false , autoFocus= false, variant = "default"}) => {
     const[value,setValue] = useState("");
