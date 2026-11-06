@@ -202,7 +202,7 @@ const AppContext = createContext(undefined)
          )
          useEffect(()=>{
             return()=>{
-                debouncedSave.cancel();
+                debouncedSave.flush();
             }
          },[debouncedSave])
          const updateProjectFiles = useCallback(
@@ -233,7 +233,8 @@ const AppContext = createContext(undefined)
             handleGenerate,
             handleDelete,
             logout,
-            updateProjectFiles
+            updateProjectFiles,
+            handleChat
 
 
         }}>
