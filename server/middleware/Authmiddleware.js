@@ -2,7 +2,7 @@ import jwt from 'jsonwebtoken'
 export function authmiddleware(req,res,next){
     const token = req.cookies.token;
      if(!token){
-        res.status(401).json({error:"acess denied. no session token provided"})
+      return res.status(401).json({error:"acess denied. no session token provided"})
 
      }
      try{
