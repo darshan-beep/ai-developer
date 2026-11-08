@@ -4,7 +4,7 @@ import { authmiddleware } from "../middleware/Authmiddleware.js";
 import { chat } from "../controllers/Chatcontroller.js";
  
 const projectRouter = Router();
-projectRouter.get("public/:id", getpublicProject)
+projectRouter.get("/public/:id", getpublicProject)
 projectRouter.use(authmiddleware)
 projectRouter.post("/",createProject)
 projectRouter.get("/",listProject)

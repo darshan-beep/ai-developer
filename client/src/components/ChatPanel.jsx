@@ -36,7 +36,7 @@ const ChatPanel = ( {messages,onSend,loading}) => {
                             {msg.role==="user"?"you":"Ai"}
                         </p>
                         <p className='text-[13px] text-zinc-700 leading-relaxed tracking-wider whitespace-pre-wrap wrap-break-word'>
-                            {msg.content.split("- `/").map((text,i)=>(
+                            {String(msg.content || "").split("- `/").map((text, i) => (
                                 <span key ={i} className='block mt-3'>
                                     <span className={i===0?"hidden":""}>-`/</span>
                                        {text}

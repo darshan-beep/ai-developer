@@ -65,6 +65,7 @@ const AppContext = createContext(undefined)
                  const errMsg = error?.response?.data?.error||"registration failed";
                  toast.error(errMsg);
                  throw new Error(errMsg);
+                 
             }
          }
          const logout= async()=>{

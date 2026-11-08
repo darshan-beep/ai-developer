@@ -1,5 +1,6 @@
 import { Project } from "../models/Project.js";
 import { generateProject } from "../services/ai.js";
+
 function hashContent(content){
     return crypto.createHash("md5").update(content).digest("hex").slice(0,12)
 }
@@ -17,7 +18,7 @@ export async function createProject(req,res){
             {role:"assistant",content:"planning project structure..."},
         ],
         version:0,
-        owner:req.user.userID,
+        owner:req.user.userId,
         status:"pending",
         filesPlanned:[],
         filesGenerated:[],
@@ -69,7 +70,7 @@ export async function createProject(req,res){
 
     onFileStart: async (path)=>{
         console.log(`[Background AI] Starting file ${path} for project ${projectId}`);
-        await project.findByIdAndUpdate(projectId,{
+        await Project.findByIdAndUpdate(projectId,{
             currentFile:path,
         })
     },
@@ -219,10 +220,10 @@ export async function updateProjectFiles(req,res){
    await project.save();
    const filesObj = {};  
     for(const [path,entry] of object.entries(project.files)){
-        if(typeof content ==="string"){
+
             filesObj[path]= entry.content;
 
-     }       
+           
 }
 res.json({
     _id:project._id,
