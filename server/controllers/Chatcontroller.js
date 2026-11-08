@@ -1,7 +1,7 @@
 import { json } from "zod";
-import { Project } from "../models/Project";
-import { reviseProject } from "../services/ai";
-import { applyOperations } from "../services/diff";
+import { Project } from "../models/Project.js";
+import { reviseProject } from "../services/ai.js";
+import { applyOperations } from "../services/diff.js";
 export function buildManifest(files){
        const manifest =[];
        for(const[path,entry] of Object.entries(files)){
@@ -37,7 +37,7 @@ export async function chat(req,res){
         role:m.role,
         content:m.content,
       }))
-      console.log(`[AI] Revising project${project._id}:"${prompt.slice(0,80)}..."`+ `(${manifest.length} files, manifest)~${json.stringify(manifest).length}chars)`,
+           console.log(`[AI] Revising project ${project._id}: "${prompt.slice(0,80)}..." (${manifest.length} files, manifest ~${JSON.stringify(manifest).length} chars)`,
     );
     const result = await reviseProject(prompt ,manifest,relevantFiles,recentMessages)
     console.log(`[AI] Got${result.operations.length} operations:${result.description}`);
@@ -75,11 +75,9 @@ export async function chat(req,res){
 
     } catch(error){
         console.error(`[AI Revising Error]   ${error.message}`);
-        project.status = "completed";
-        awaitproject.save();
-        res.status(500),json({error:error.message||"failed to process revision request"});
+        project.status = "completed";      
         
-          
-
+        await project.save();
+       res.status(500).json({error:error.message||"failed to process revision request"});
     }
 }

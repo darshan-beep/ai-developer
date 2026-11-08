@@ -1,13 +1,14 @@
 import { User } from "../models/Usermodel.js";
 import jwt from 'jsonwebtoken'
+import bcrypt from 'bcrypt'
 const JWT_SECRET = process.env.JWT_SECRET||"fallback_secret"
 const setSessionCookie = (res,payload)=>{
-    const token = JsonWebTokenError.sign(payload, JWT_SECRET,{expiresIn:"30d"})
+       const token = jwt.sign(payload, JWT_SECRET,{expiresIn:"30d"})
     res.cookie('token',token,{
         httpOnly:true,
         secure:process.env.NODE_ENV==="production",
         sameSite:"lax",
-        navAge:30*24*60*60*1000,
+                maxAge:30*24*60*60*1000,
         path:'/',
     })
 }
@@ -18,7 +19,7 @@ export async function register(req,res){
         return;
 
     }
-    const trimmedEmail = email.toLowercase().trim()
+    const trimmedEmail = email.toLowerCase().trim()
     const existing = await User.findOne({email:trimmedEmail})
     if(existing){
         res.status(400).json({

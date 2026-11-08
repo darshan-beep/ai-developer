@@ -57,6 +57,7 @@ try{
     if(loadingActiveproject||!activeproject){
         return<Loading/>
     }
+   
   return (
     <div className='h-screen flex flex-col bg-white overflow-hidden text-zinc-900 relative'>
     <BuilderHeader

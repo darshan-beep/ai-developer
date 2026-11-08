@@ -10,7 +10,7 @@ import authRouter from "./routes/Authroutes.js";
 import projectRouter from "./routes/projectroutes.js";
 const app = express();
    await connectToDatabase();
-app.use(cors({origin:"process.env.ORIGIN.split(',')",credentials:true}))
+app.use(cors({origin:process.env.ORIGIN.split(','),credentials:true}))
 app.use(express.json())
 app.use(cookieParser())
 app.get("/",(req,res)=>res.send("Server is Live!"))
