@@ -1,8 +1,22 @@
 import { CheckCircle2Icon, CircleIcon, Loader2Icon } from "lucide-react";
+const toArray = (value) => {
+  if (Array.isArray(value)) return value;
+  if (typeof value === "string") {
+    try {
+      const parsed = JSON.parse(value);
+      return Array.isArray(parsed) ? parsed : parsed?.files ?? [];
+    } catch {
+      return [];
+    }
+  }
+  if (value && Array.isArray(value.files)) return value.files;
+  return [];
+};
 
 export default function AgentProgressDashboard({ project }) {
-    const planned = project.filesPlanned || [];
-    const completed = project.filesGenerated || [];
+   const planned = toArray(project?.plannedFiles)
+  .map((f) => (typeof f === "string" ? { path: f } : f));
+const completed = toArray(project?.completedFiles);
     const current = project.currentFile;
     const isFailed = project.status === "failed";
 

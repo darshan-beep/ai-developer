@@ -1,5 +1,6 @@
 import { Project } from "../models/Project.js";
 import { generateProject } from "../services/ai.js";
+import crypto from "crypto";
 
 function hashContent(content){
     return crypto.createHash("md5").update(content).digest("hex").slice(0,12)
@@ -74,7 +75,7 @@ export async function createProject(req,res){
             currentFile:path,
         })
     },
-    onFileComplete:async(path)=>{
+    onFileComplete:async(path,code)=>{
         console.log(`[Background AI]  finished file${path}for project ${projectId}`)
         const project = await Project.findById(projectId)
         if(project){
@@ -102,10 +103,10 @@ export async function createProject(req,res){
         if (result.description){
             project.name = result.description;
         }
-        project.messages,push({
+        project.messages.push({
             role:"assistant",
             content:`website generation complete ! you can view and edit the files`,
-            timestamps :new Date(),
+            timestamp :new Date(),
         })
         await project.save();
     }
@@ -115,11 +116,11 @@ export async function createProject(req,res){
 console.error(`[Background AI]  Fatal generation error for project${projectId}:`,error);
 await Project.findByIdAndUpdate(projectId,{
     status:'failed',
-    error:err.message,
+    error:error.message,
     $push:{
         messages:{
             role:"assistant",
-            content:`Generation failed:${err.message}`,
+            content:`Generation failed:${error.message}`,
             timestamp:new Date(),
         }
     }
@@ -266,12 +267,12 @@ if(!project.published){
     return;
 }
 const filesObj = {}
- for(const [path,entry] of object.entries(project.files)){
+ for(const [path,entry] of Object.entries(project.files)){
         
             filesObj[path]= entry.content;  
 
 }
-res.json=({
+res.json({
  _id:project._id,
         name:project.name,
         description:project.description,
