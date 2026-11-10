@@ -6,6 +6,14 @@ import { buildFileCodeSystem, FILE_PLAN_SYSTEM, REVISE_SYSTEM } from './prompts.
 import { el } from 'zod/v4/locales';
 import { normalizeContent } from './contentNormalizer.js';
 import { validateAndFixCode, validateRevisionContent } from './codeValidator.js';
+const stripFences = async ({ text }) => {
+  const cleaned = text
+    .trim()
+    .replace(/^```(?:json)?\s*/i, "")
+    .replace(/\s*```$/, "")
+    .trim();
+  return cleaned;
+};
 
 // --- OpenRouter Model Client Setup ---
 const MODEL = process.env.OPENROUTER_MODEL || "openrouter/free";
@@ -17,6 +25,7 @@ const openrouter = createOpenAI({
 })
 
 const model = openrouter(MODEL);
+
 
 // Generate a single file's code
 async function generateSingleFile(file, allFiles, prompt, alreadyGeneratedFiles){
@@ -62,6 +71,13 @@ export async function generateProject(prompt, callbacks){
         system: FILE_PLAN_SYSTEM,
         prompt: `Plan a React website for: ${prompt}`,
         maxRetries: 2,
+          experimental_repairText: async ({ text }) => {
+    return text
+      .trim()
+      .replace(/^```(?:json)?\s*/i, "")
+      .replace(/\s*```$/, "")
+      .trim();
+  },
     });
 
     if(!plan.files.find((f)=> f.path === "/App.js")){
@@ -137,31 +153,32 @@ export async function generateProject(prompt, callbacks){
          pendingFiles = failedFiles;
     }
 
-    if(pendingFiles.length > 0){
-        const failedPaths = pendingFiles.map((f)=>f.path).join(", ");
-        console.error(`[AI] Failed to generate ${pendingFiles.length} files after all retry rounds: ${failedPaths}`);
+  if (pendingFiles.length > 0) {
+    const failedPaths = pendingFiles.map((f) => f.path).join(", ");
+    console.error(`[AI] Failed to generate ${pendingFiles.length} files after all retry rounds: ${failedPaths}`);
 
-        if (pendingFiles.some((f) => f.path === "/App.js")){
-            const ext = file.path.split(".").pop()?.toLowerCase();
+    for (const file of pendingFiles) {
+        const ext = file.path.split(".").pop()?.toLowerCase();
 
-            if(ext === "css"){
-                files[file.path] = `/* ${file.description} — Generation failed, please retry */\n`
-            }else{
-                files[file.path] = "import React from 'react';\n\n" + 
-                `// ⚠️ This file could not be generated. Please retry.\n` +
-                `// Purpose: ${file.description}\n\n` + 
+        if (ext === "css") {
+            files[file.path] = `/* ${file.description} - Generation failed, please retry */\n`;
+        } else {
+            files[file.path] =
+                "import React from 'react';\n\n" +
+                "// This file could not be generated. Please retry.\n" +
+                `// Purpose: ${file.description}\n\n` +
                 "export default function Placeholder() {\n" +
                 "  return (\n" +
-                    "    <div className='p-8 text-center text-zinc-400'>\n" +
-                    "      <p>⚠️ Component failed to generate. Please try again.</p>\n" +
-                    "    </div>\n" +
-                    "  );\n" +
-                    "}\n";
-            }
+                "    <div className='p-8 text-center text-zinc-400'>\n" +
+                "      <p>Component failed to generate. Please try again.</p>\n" +
+                "    </div>\n" +
+                "  );\n" +
+                "}\n";
         }
-
     }
+}
 
+    
     if(!files["/App.js"]){
         throw new Error("AI did not generate /App.js entry point");
     }

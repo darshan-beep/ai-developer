@@ -123,16 +123,22 @@ const AppContext = createContext(undefined)
             }
 
          }
-         useEffect(()=>{
-            if(!activeproject?._id||!user)return;
-            const isOngoing = activeproject.status==="generating"||activeproject.status==="pending"||activeproject.status==="revising"
-            if(isOngoing){
-                setChatLoading(true)
-                const interval= setInterval(()=>{
-                loadProject(activeproject._id,true)
-                },2000)
-            }
-         },[activeproject?.id,activeproject?.status,loadProject,user])
+         useEffect(() => {
+  if (!activeproject?._id || !user) return;
+
+  const isOngoing = ["generating", "pending", "revising"].includes(activeproject.status);
+  if (!isOngoing) {
+    setChatLoading(false);
+    return;
+  }
+
+  setChatLoading(true);
+  const interval = setInterval(() => {
+    loadProject(activeproject._id, true);
+  }, 2000);
+
+  return () => clearInterval(interval);
+}, [activeproject?._id, activeproject?.status, user]);
 
          const handleGenerate = useCallback(
             async(prompt)=>{
@@ -173,7 +179,7 @@ const AppContext = createContext(undefined)
                setChatLoading(true)
                try{
                 const{data }= await api.post(`/api/projects/${activeproject._id}/chat`,{prompt})
-                 setActiveProject(dats)
+                 setActiveProject(data)
                 if(data.errors&&data.errors.length >0){
                     toast.error(`${data.errors.length} revision patch(es) failed`)
                 }else{
